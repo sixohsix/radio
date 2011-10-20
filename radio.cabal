@@ -1,0 +1,17 @@
+Name:Radio
+Version:0.1
+Cabal-Version:  >= 1.2
+License:MIT
+Author:Mike Verdone
+Homepage:
+Category:
+Synopsis:Scripts to run ezstream radio stations
+Build-Type: Simple
+
+Executable next_to_play
+  Main-Is: NextToPlay.hs
+  Build-Depends:
+    base,
+    process,
+    directory,
+    haskell98
