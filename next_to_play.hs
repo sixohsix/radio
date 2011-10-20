@@ -2,6 +2,8 @@
 import System.Environment (getArgs)
 import Radio.PrintNextToPlay (printNextToPlay)
 
+
+main :: IO ()
 main = do
   args <- getArgs
   dir <- return $ if null args
