@@ -3,20 +3,75 @@ module Radio.Util where
 
 import Control.Monad (filterM)
 import List (sortBy)
-import System.Directory (getDirectoryContents, getModificationTime, doesFileExist)
+import System.Directory (getDirectoryContents, getModificationTime, doesFileExist, removeFile)
 import System.Cmd (rawSystem)
+import Text.Printf (printf)
 
+-- import Debug.Trace (trace)
+
+
+cmdLogging = False
+
+rawSystem' c a = do
+  _ <- if cmdLogging then putStrLn $ c ++ (show a)
+       else return ()
+  rawSystem c a
+
+
+withSlash dir = if last dir == '/'
+                then dir
+                else dir ++ "/"
+
+
+joinPath dir file = (withSlash dir) ++ file
+
+
+filesInDir :: FilePath -> IO [FilePath]
+filesInDir dir = do
+  dirContents <- getDirectoryContents dir
+  dirFiles    <- filterM (\fn -> doesFileExist $ (withSlash dir) ++ fn)  dirContents
+  return $ filter (\fn -> head fn /= '.') dirFiles  -- Ignore hidden files
+  
 
 oldestFileInDir :: FilePath -> IO FilePath
 oldestFileInDir dir = do 
-  dirContents        <- getDirectoryContents dir
-  dirFiles           <- filterM doesFileExist dirContents
-  dirNonHiddenFiles  <- return $ filter (\fn -> head fn /= '.') dirFiles  -- Ignore hidden files
-  modTimes <- sequence $ map getModificationTime dirNonHiddenFiles
-  return $ fst $ head $ sortBy orderModTime $ zip dirNonHiddenFiles modTimes where
+  dirFiles           <- filesInDir dir
+  modTimes           <- sequence $ map (\fn -> getModificationTime (withSlash dir ++ fn)) dirFiles
+  return $ fst $ head $ sortBy orderModTime $ zip dirFiles modTimes where
     orderModTime (_,ma) (_,mb) = compare ma mb
+
 
 touchFile :: FilePath -> IO ()
 touchFile fp = do
-  _ <- rawSystem "touch" [fp]
+  _ <- rawSystem' "touch" [fp]
   return ()
+
+
+makeFileAncient :: FilePath -> Int -> IO ()
+makeFileAncient fp idx = let
+    offsetStr = printf "%05d" idx
+  in do
+    _ <- rawSystem' "touch" ["-d", "1970-01-01 00:00:00." ++ offsetStr, fp]
+    return ()
+
+
+hardlinkFile :: FilePath -> FilePath -> IO ()
+hardlinkFile file dir = do
+  _ <- rawSystem' "ln" [file, dir]
+  return ()
+
+
+moveFilesAsAncient :: [FilePath] -> FilePath -> IO ()
+moveFilesAsAncient files dir = let
+  moveAndMakeAncient (file, idx) = do
+    _ <- makeFileAncient file idx
+    _ <- hardlinkFile file dir
+    removeFile file
+  in do
+    _ <- sequence $ map moveAndMakeAncient (zip files [0..])
+    return ()
+
+
+moveAllFilesInDirAsAncient inDir outDir = do
+  files <- filesInDir inDir
+  moveFilesAsAncient (map (joinPath inDir) files) outDir
