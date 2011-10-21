@@ -1,20 +1,25 @@
 
-import Data.List (foldl')
+import Control.Monad (when)
 import System.Environment (getArgs)
 import Radio.Util (makeFileAncient)
 
-usageStr = "USAGE:\n  play_next <file> [file] ..."
+import Debug.Trace
 
 
-makeAllAncient files =
-  sequence (
+usageMsg :: String
+usageMsg = "\nUSAGE:\n  play_next <file> [file] ..."
+
+
+makeAllAncient :: [FilePath] -> IO ()
+makeAllAncient files = do
+  _ <- sequence (
     map (\ (f, idx) -> makeFileAncient f idx) (zip files [0..]))
+  return ()
 
 
 main :: IO ()
 main = do
   args <- getArgs
-  case null args of
-    True  -> return (error usage)
-    False -> makeAllAncient args
+  _ <- when (null args) (fail usageMsg)
+  _ <- makeAllAncient args
   return ()

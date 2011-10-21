@@ -16,3 +16,12 @@ Executable next_to_play
     directory,
     haskell98,
     unix
+
+Executable play_these_next
+  Main-Is: Radio/PlayNext.hs
+  Build-Depends:
+    base,
+    process,
+    directory,
+    haskell98,
+    unix
