@@ -8,7 +8,7 @@ usageStr = "USAGE:\n  play_next <file> [file] ..."
 
 makeAllAncient files =
   sequence (
-    map (\ (idx, f) -> makeFileAncient f idx) (zip files [0..]))
+    map (\ (f, idx) -> makeFileAncient f idx) (zip files [0..]))
 
 
 main :: IO ()
