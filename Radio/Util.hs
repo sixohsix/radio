@@ -3,7 +3,9 @@ module Radio.Util where
 
 import Control.Monad (filterM)
 import List (sortBy)
-import System.Directory (getDirectoryContents, getModificationTime, doesFileExist, removeFile)
+import System.Directory (getDirectoryContents, doesFileExist, removeFile)
+import System.Posix.Types (EpochTime)
+import System.Posix.Files (accessTime, getFileStatus)
 import System.Cmd (rawSystem)
 import Text.Printf (printf)
 
@@ -33,17 +35,23 @@ filesInDir dir = do
   return $ filter (\fn -> head fn /= '.') dirFiles  -- Ignore hidden files
   
 
+fileAccessTime :: FilePath -> IO EpochTime
+fileAccessTime fp = do
+  status <- getFileStatus fp
+  return (accessTime status)
+
+
 oldestFileInDir :: FilePath -> IO FilePath
 oldestFileInDir dir = do 
   dirFiles           <- filesInDir dir
-  modTimes           <- sequence $ map (\fn -> getModificationTime (withSlash dir ++ fn)) dirFiles
-  return $ fst $ head $ sortBy orderModTime $ zip dirFiles modTimes where
+  accTimes           <- sequence $ map fileAccessTime dirFiles
+  return $ fst $ head $ sortBy orderModTime $ zip dirFiles accTimes where
     orderModTime (_,ma) (_,mb) = compare ma mb
 
 
 touchFile :: FilePath -> IO ()
 touchFile fp = do
-  _ <- rawSystem' "touch" [fp]
+  _ <- rawSystem' "touch" ["-a", fp]
   return ()
 
 
@@ -51,7 +59,7 @@ makeFileAncient :: FilePath -> Int -> IO ()
 makeFileAncient fp idx = let
     offsetStr = printf "%05d" idx
   in do
-    _ <- rawSystem' "touch" ["-d", "1970-01-01 00:00:00." ++ offsetStr, fp]
+    _ <- rawSystem' "touch" ["-a", "-d", "1970-01-01 00:00:00." ++ offsetStr, fp]
     return ()
 
 
