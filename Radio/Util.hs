@@ -44,7 +44,7 @@ fileAccessTime fp = do
 oldestFileInDir :: FilePath -> IO FilePath
 oldestFileInDir dir = do 
   dirFiles           <- filesInDir dir
-  accTimes           <- sequence $ map fileAccessTime dirFiles
+  accTimes           <- sequence $ map (\fn -> fileAccessTime (joinPath dir fn)) dirFiles
   return $ fst $ head $ sortBy orderModTime $ zip dirFiles accTimes where
     orderModTime (_,ma) (_,mb) = compare ma mb
 
