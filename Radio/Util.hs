@@ -30,17 +30,8 @@ joinPath dir file = (withSlash dir) ++ file
 filterHidden = filter (\fn -> head fn /= '.')
 
 
-filesInDir :: FilePath -> IO [FilePath]
-filesInDir dir = do
-  dirContents <- getDirectoryContents dir
-  dirFiles    <- filterM (\fn -> doesFileExist $ (withSlash dir) ++ fn)  dirContents
-  return $ filter (\fn -> head fn /= '.') dirFiles  -- Ignore hidden files
-  
-
 fileAccessTime :: FilePath -> IO EpochTime
-fileAccessTime fp = do
-  status <- getFileStatus fp
-  return (accessTime status)
+fileAccessTime fp = (getFileStatus fp) >>= (return . accessTime)
 
 
 allFilesRecursive :: FilePath -> IO [FilePath]
@@ -54,9 +45,9 @@ allFilesRecursive fp = do
       return (concat subdirContents)
 
 
-filesSortedOldestFirst :: [FilePath] -> IO [FilePath]
-filesSortedOldestFirst files = do
-  accTimes <- sequence $ map fileAccessTime files
+sortOldestFirst :: [FilePath] -> IO [FilePath]
+sortOldestFirst files = do
+  accTimes <- sequence (map fileAccessTime files)
   return (map fst (sortBy orderAccTime (zip files accTimes))) where
     orderAccTime (_,ma) (_,mb) = compare ma mb
 
@@ -92,11 +83,6 @@ moveFilesAsAncient files dir = let
     return ()
 
 
-moveAllFilesInDirAsAncient inDir outDir = do
-  files <- filesInDir inDir
-  moveFilesAsAncient (map (joinPath inDir) files) outDir
-
-
 nextFileToPlay :: FilePath -> IO FilePath
 nextFileToPlay dir = 
-  (allFilesRecursive dir) >>= filesSortedOldestFirst >>= (return . head) >>= canonicalizePath
+  (allFilesRecursive dir) >>= sortOldestFirst >>= (return . head) >>= canonicalizePath
