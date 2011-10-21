@@ -27,6 +27,8 @@ withSlash dir = if last dir == '/'
 
 joinPath dir file = (withSlash dir) ++ file
 
+filterHidden = filter (\fn -> head fn /= '.')
+
 
 filesInDir :: FilePath -> IO [FilePath]
 filesInDir dir = do
@@ -41,12 +43,22 @@ fileAccessTime fp = do
   return (accessTime status)
 
 
-oldestFileInDir :: FilePath -> IO FilePath
-oldestFileInDir dir = do 
-  dirFiles           <- filesInDir dir
-  accTimes           <- sequence $ map (\fn -> fileAccessTime (joinPath dir fn)) dirFiles
-  return $ fst $ head $ sortBy orderModTime $ zip dirFiles accTimes where
-    orderModTime (_,ma) (_,mb) = compare ma mb
+allFilesRecursive :: FilePath -> IO [FilePath]
+allFilesRecursive fp = do
+  isFile <- doesFileExist fp
+  case isFile of
+    True      -> return [fp]
+    otherwise -> do
+      dirContents    <- ((getDirectoryContents fp) >>= (return . filterHidden))
+      subdirContents <- sequence (map (allFilesRecursive . (joinPath fp)) dirContents)
+      return (concat subdirContents)
+
+
+filesSortedOldestFirst :: [FilePath] -> IO [FilePath]
+filesSortedOldestFirst files = do
+  accTimes <- sequence $ map fileAccessTime files
+  return (map fst (sortBy orderAccTime (zip files accTimes))) where
+    orderAccTime (_,ma) (_,mb) = compare ma mb
 
 
 touchFile :: FilePath -> IO ()
@@ -85,4 +97,6 @@ moveAllFilesInDirAsAncient inDir outDir = do
   moveFilesAsAncient (map (joinPath inDir) files) outDir
 
 
-canonicalizeFileInDir dir fn = canonicalizePath (joinPath dir fn)
+nextFileToPlay :: FilePath -> IO FilePath
+nextFileToPlay dir = 
+  (allFilesRecursive dir) >>= filesSortedOldestFirst >>= (return . head) >>= canonicalizePath

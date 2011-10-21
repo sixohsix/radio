@@ -9,11 +9,10 @@ Synopsis:Scripts to run ezstream radio stations
 Build-Type: Simple
 
 Executable next_to_play
-  Main-Is: NextToPlay.hs
+  Main-Is: Radio/PrintNextToPlay.hs
   Build-Depends:
     base,
     process,
     directory,
     haskell98,
     unix
-    
