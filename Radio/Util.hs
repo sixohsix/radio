@@ -3,7 +3,7 @@ module Radio.Util where
 
 import Control.Monad (filterM)
 import List (sortBy)
-import System.Directory (getDirectoryContents, doesFileExist, removeFile)
+import System.Directory (getDirectoryContents, doesFileExist, removeFile, canonicalizePath)
 import System.Posix.Types (EpochTime)
 import System.Posix.Files (accessTime, getFileStatus)
 import System.Cmd (rawSystem)
@@ -83,3 +83,6 @@ moveFilesAsAncient files dir = let
 moveAllFilesInDirAsAncient inDir outDir = do
   files <- filesInDir inDir
   moveFilesAsAncient (map (joinPath inDir) files) outDir
+
+
+canonicalizeFileInDir dir fn = canonicalizePath (joinPath dir fn)

@@ -1,10 +1,11 @@
 
 module Radio.PrintNextToPlay where
 
-import Radio.Util (touchFile, oldestFileInDir)
+import Radio.Util (touchFile, oldestFileInDir, canonicalizeFileInDir)
 
 printNextToPlay :: FilePath -> IO ()
 printNextToPlay dir = do
   fp <- oldestFileInDir dir
-  putStrLn fp
+  absFp <- canonicalizeFileInDir dir fp
+  putStrLn absFp
   return ()
