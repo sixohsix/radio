@@ -18,6 +18,8 @@ Executable next_to_play
     haskell98,
     unix,
     encoding,
+    time,
+    bytestring,
     xattr >=0.5.2
 
 Executable play_these_next
@@ -30,4 +32,6 @@ Executable play_these_next
     haskell98,
     unix,
     encoding,
+    time,
+    bytestring,
     xattr >= 0.5.2
