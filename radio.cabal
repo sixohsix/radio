@@ -1,5 +1,5 @@
 Name:Radio
-Version:0.1
+Version:0.2
 Cabal-Version:  >= 1.2
 License:MIT
 Author:Mike Verdone
@@ -12,26 +12,26 @@ Executable next_to_play
   Main-Is: PrintNextToPlay.hs
   Hs-Source-Dirs: src
   Build-Depends:
-    base,
+    base >= 4,
     process,
     directory,
     haskell98,
     unix,
-    encoding,
     time,
     bytestring,
-    xattr >=0.5.2
+    text,
+    xattr >=0.5.3
 
 Executable play_these_next
   Main-Is: PlayNext.hs
   Hs-Source-Dirs: src
   Build-Depends:
-    base,
+    base >= 4,
     process,
     directory,
     haskell98,
     unix,
-    encoding,
     time,
     bytestring,
-    xattr >= 0.5.2
+    text,
+    xattr >= 0.5.3
