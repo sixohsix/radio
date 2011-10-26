@@ -1,7 +1,7 @@
 
 import Control.Monad (when)
 import System.Environment (getArgs)
-import Radio.Util (makeFileAncient)
+import Radio.Util (setModTime)
 
 import Debug.Trace
 
@@ -13,7 +13,7 @@ usageMsg = "\nUSAGE:\n  play_next <file> [file] ..."
 makeAllAncient :: [FilePath] -> IO ()
 makeAllAncient files = do
   _ <- sequence (
-    map (\ (f, idx) -> makeFileAncient f idx) (zip files [0..]))
+    map (\ (f, idx) -> setModTime f idx) (zip files [0..]))
   return ()
 
 

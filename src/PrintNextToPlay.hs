@@ -1,10 +1,7 @@
 
 import System.Environment (getArgs)
+import System.Posix.Files (touchFile)
 import Radio.Util (nextFileToPlay)
-
-
-printNextToPlay :: FilePath -> IO ()
-printNextToPlay dir = (nextFileToPlay dir) >>= putStrLn
 
 
 main :: IO ()
@@ -13,4 +10,6 @@ main = do
   dir <- return $ if null args
     then error "You need to give the directory to find songs in."
     else head args
-  printNextToPlay dir
+  nextToPlay <- nextFileToPlay dir
+  _ <- putStrLn nextToPlay
+  touchFile nextToPlay

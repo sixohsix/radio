@@ -23,8 +23,8 @@ filterHidden :: [FilePath] -> [FilePath]
 filterHidden = filter (\fn -> head fn /= '.')
 
 
-fileAccessTime :: FilePath -> IO EpochTime
-fileAccessTime fp = (getFileStatus fp) >>= (return . accessTime)
+fileModTime :: FilePath -> IO EpochTime
+fileModTime fp = (getFileStatus fp) >>= (return . modificationTime)
 
 
 allFilesRecursive :: FilePath -> IO [FilePath]
@@ -40,22 +40,15 @@ allFilesRecursive fp = do
 
 sortOldestFirst :: [FilePath] -> IO [FilePath]
 sortOldestFirst files = do
-  accTimes <- sequence (map fileAccessTime files)
-  return (map fst (sortBy orderAccTime (zip files accTimes))) where
-    orderAccTime (_,ma) (_,mb) = compare ma mb
-
-
-setAccessTime :: FilePath -> EpochTime -> IO ()
-setAccessTime fp atime = do
-  _ <- return (traceShow fp ())
-  mtime <- (getFileStatus fp) >>= (return . modificationTime)
-  setFileTimes fp atime mtime
-
-
-makeFileAncient :: FilePath -> EpochTime -> IO ()
-makeFileAncient = setAccessTime
+  modTimes <- sequence (map fileModTime files)
+  return (map fst (sortBy orderModTime (zip files modTimes))) where
+    orderModTime (_,ma) (_,mb) = compare ma mb
 
 
 nextFileToPlay :: FilePath -> IO FilePath
 nextFileToPlay dir = 
   (allFilesRecursive dir) >>= sortOldestFirst >>= (return . head) >>= canonicalizePath
+
+
+setModTime :: FilePath -> EpochTime -> IO ()
+setModTime fp mtime = setFileTimes fp mtime mtime

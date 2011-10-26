@@ -12,7 +12,7 @@ Executable next_to_play
   Main-Is: PrintNextToPlay.hs
   Hs-Source-Dirs: src
   Build-Depends:
-    base,
+    base >= 4,
     process,
     directory,
     haskell98,
@@ -22,7 +22,7 @@ Executable play_these_next
   Main-Is: PlayNext.hs
   Hs-Source-Dirs: src
   Build-Depends:
-    base,
+    base >= 4,
     process,
     directory,
     haskell98,
